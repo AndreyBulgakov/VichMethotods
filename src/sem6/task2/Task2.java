@@ -276,7 +276,7 @@ public class Task2 {
         //После перепножения A на x
         double[] vectorNeviazkiAbs = IntStream.range(0, n).mapToDouble(i -> Math.abs(b[i]-solutionB[i])).toArray();
 
-        //Считаем норму(значения внутри уже по модулю лежат
+        //Считаем норму(значения внутри уже по модулю лежат)
         neviazka = Arrays.stream(vectorNeviazkiAbs).sum();
 
         return neviazka;
