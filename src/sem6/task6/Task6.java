@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
+import kotlin.jvm.functions.Function3;
 import org.apache.commons.math3.analysis.polynomials.PolynomialFunction;
 import sem5.Task5.Task5;
 import sem6.task2.Task2;
@@ -17,16 +18,16 @@ import util.Matrix;
 public class Task6 {
     public static void main(String[] args) {
 //        int n = 3;
-        double[][] res = new double[5][6];
         int start = 3;
-        int end = 7;
+        int end = 15;
+        double[][] res = new double[end-start+1][6];
         /////////////////////////////////////////////////////////////////////////
         for (int n = start; n <= end; n++) {
 
             //Формируем ОДУ с краевыми условиями
-            Function<Double, Double> p = x -> 1.0 / (2 * x + 3);
-            Function<Double, Double> r = x -> 2 - (x * x) / 2.0;
-            Function<Double, Double> f = x -> 1 + x;
+            Function<Double, Double> p = x -> 1.0 / (2.0 * x + 3.0);
+            Function<Double, Double> r = x -> 2.0 - (x * x) / 2.0;
+            Function<Double, Double> f = x -> 1.0 + x;
             double a1 = 1.0;
             double a2 = 0.0;
             double b1 = 0.0;
@@ -39,16 +40,38 @@ public class Task6 {
             // Или через апач
             Function<Double, Double>[] w = new Function[n];
             Function<Double, Double>[] dw = new Function[n];
-            w[0] = x -> 1 + x;
-            dw[0] = x -> 1.0;
+            Function<Double, Double>[] ddw = new Function[n];
 
-            for (int k = 1; k < n; k++) {
-                // Лямбды в джаве...
-                int PolyDegree = k;
-                w[k] = x ->
-                        (1 - x * x) * PolynomialsUtils.createJacobiPolynomial(PolyDegree, 1, 1).value(x);
-                dw[k] = x ->
-                        -2 * (PolyDegree + 1) * PolynomialsUtils.createJacobiPolynomial(PolyDegree + 1, 0, 0).value(x);
+            for (int i = 0; i < n; i++) {
+                int PolyDegree = i - 2;
+                if (i==0){
+                    w[i] = x -> x*x-2*x-3;
+                    dw[i] = x -> 2*x-2;
+                    ddw[i] = x -> 2.0;
+
+//                    w[i] = x -> 1.0+x;
+//                    dw[i] = x -> 1.0;
+//                    ddw[i] = x -> 0.0;
+                }
+                else if (i==1){
+
+                    w[i] = x -> x*x*x-3*x-2;
+                    dw[i] = x -> 3*x*x-3;
+                    ddw[i] = x -> 6.0*x;
+
+                }
+                else {
+//                    w[i] = x -> (1.0 - x * x) * PolynomialsUtils.createJacobiPolynomial(PolyDegree, 1, 1).value(x);
+//                    dw[i] = x -> -2.0 * (PolyDegree + 1) * PolynomialsUtils.createJacobiPolynomial(PolyDegree + 1, 0, 0).value(x);
+//                    ddw[i] = x -> -2.0 * (PolyDegree + 1)* (PolyDegree + 1 + 0 + 1) / 2.0 * PolynomialsUtils.createJacobiPolynomial(PolyDegree, 1, 1).value(x);
+//
+                    w[i] = x -> Math.pow((1.0 - x * x),2) * PolynomialsUtils.createJacobiPolynomial(PolyDegree, 2, 2)
+                            .value(x);
+                    dw[i] = x -> -2.0 * (PolyDegree + 1)* (1.0 - x * x) * PolynomialsUtils.createJacobiPolynomial(PolyDegree + 1, 1,1)
+                            .value(x);
+                    ddw[i] = x -> 4*(PolyDegree + 1) * (PolyDegree + 2 )* PolynomialsUtils.createJacobiPolynomial(PolyDegree + 2, 0, 0)
+                            .value(x);
+                }
             }
 
             double a = -0.5;
@@ -57,7 +80,7 @@ public class Task6 {
             //Получаем yn методом Ритца
             Function<Double, Double> y = ritzMethod(Ly_f, w);
             //Получаем yn методом Колакаций
-            Function<Double, Double> y2 = kolockMethod(Ly_f, w, dw);
+            Function<Double, Double> y2 = kolockMethod(Ly_f, w, dw, ddw);
 
             /////////////////////////////////////////////////////////////////////////////
             //Надо для вывода
@@ -70,61 +93,48 @@ public class Task6 {
         }
         System.out.println("|n|____________rn(x)__________|__________kn(x)___________|");
         for (int i = 0; i < res.length; i++) {
-            for (int j = 0; j < res[i].length; j++) {
-                System.out.printf("|%1d|%8.7f|%8.7s|%8.7s|%8.7s|%8.7s|%8.7s|\n",
+                System.out.printf("|%1d|%8.7f|%8.7f|%8.7f|%8.7f|%8.7f|%8.7f|\n",
                         i+start, res[i][0], res[i][1], res[i][2]
                         , res[i][3], res[i][4], res[i][5]);
-            }
         }
     }
     /**
      * Метод колокации
      * */
     public static Function<Double, Double> kolockMethod(Ly_f Ly_f,
-                                                        Function<Double, Double>[] w, Function<Double, Double>[] dw){
+                                                        Function<Double, Double>[] w,
+                                                        Function<Double, Double>[] dw,
+                                                        Function<Double, Double>[] ddw){
         int n = w.length;
-        double[] t = IntStream
-                .range(0, n).mapToDouble(i -> (Math.cos(2*i)* Math.PI)/(2.0*n))
-                .toArray();
-        Arrays.sort(t);
-        double[][] A = new double[n][n];
-        double[] f = new double[n];
-        double h = 0.000001;
 
-        //Считаем Lwj(ti)=f(ti)
-        //Ly имеет вид Ly = -(p(x)y')' + r(x)*y
+        double[] t = new double[n];
+        for (int i = 0; i < n; i++) {
+            t[i] = Math.cos(((2 * i) * Math.PI) / (2 * n));
+        }
+        Arrays.sort(t);
+
+        double[][] A = new double[n][n];
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
-                //Лямбды в джаве... переменная должна быть финальной
-                int finalJ = j;
-
-                //Здесь считаем левую часть уавнения
-                Function<Double, Double> Lwj = x ->
-                //-(p(x)y')
-//                        - (derivate(Ly_f.p, h).apply(x) * dw[finalJ].apply(x)
-//                                + Ly_f.p.apply(x) * derivate(dw[finalJ], h).apply(x))
-                        - derivate(z -> Ly_f.p.apply(z) * dw[finalJ].apply(z), h)
-                                .apply(x)
-                //+r(x)*y
-                                + Ly_f.r.apply(x)*w[finalJ]
-                                .apply(x);
-
-                A[i][finalJ] = Lwj.apply(t[i]);
+                A[i][j] = Ly_f.Ly(w[j], dw[j], ddw[j]).apply(t[i]);
+//                A[i][j] = Ly_f.Ly(w[j]).apply(t[i]);
             }
+        }
+
+        double[] f = new double[n];
+        for (int i = 0; i < n; i++) {
             f[i] = Ly_f.f.apply(t[i]);
         }
-        //Решаем относительно cj
-        double[] c = Task2.gausWithChoiceRow(A, f, 1e-10);
+//        double[] c = Task2.gausWithChoiceRow(A, f, 1e-10);
+        double[][] D = Task2.reverseMatrix(A,1e-10);
+
+        double[] c = Matrix.multiply(D, f);
+
         Function<Double, Double> y = x -> IntStream
-                .range(0, n)
+                .range(0, n-1)
                 .mapToDouble(i -> c[i] * w[i].apply(x))
                 .sum();
-//        System.out.println("///////////////////////////////////////////////");
-//        System.out.println("n = "+n);
-//        System.out.println("-----Расширенная матрица системы-------");
-//        Matrix.print(A, f);
-//        System.out.println("-----Коэффисциенты сj-------");
-//        System.out.println(Arrays.toString(c));
+
         return y;
     }
 

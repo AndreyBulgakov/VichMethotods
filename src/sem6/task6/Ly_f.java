@@ -37,12 +37,20 @@ public class Ly_f {
     }
 
     public Function<Double, Double> Ly(Function<Double, Double> y){
-        double h = 1e-16;
-//        Function<Double, Double> dy = Task6.derivate(y, h);
-//        Function<Double, Double> dpdy = Task6.derivate(x -> p.apply(x)*dy.apply(x), h);
-//        Function<Double, Double> res = x -> -dpdy.apply(x) + r.apply(x)*y.apply(x);
+        double h = 1e-5;
         Function<Double, Double> res = x ->
-                - derivate(j -> p.apply(j)*derivate(y, h).apply(j), h).apply(x) +r.apply(x)*y.apply(x);
+                - (derivate(p, h).apply(x) * derivate(y,h).apply(x) + p.apply(x) * derivate(derivate(y, h),h).apply(x))
+                        + r.apply(x)*y.apply(x);
+//                - derivate(j -> p.apply(j)*derivate(y, h).apply(j), h).apply(x) + r.apply(x)*y.apply(x);
+        return res;
+    }
+    public Function<Double, Double> Ly(Function<Double, Double> y,Function<Double, Double> dy,Function<Double, Double> ddy){
+        double h = 1e-5;
+        Function<Double, Double> res = x ->
+                -(derivate(p,h).apply(x) * dy.apply(x) + (p.apply(x)) * ddy.apply(x))
+                        + r.apply(x) * y.apply(x);
+//                -((-2.0/Math.pow(2.0*x+3.0, 2.0)) * dy.apply(x) + ((1.0 / (2.0 * x + 3.0)) * ddy.apply(x)))
+//                        + (2.0 - x * x / 2.0)*y.apply(x);
         return res;
     }
 }
