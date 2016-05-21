@@ -211,7 +211,7 @@ public class Task1 {
 
         //Вывод ветора неизвестных
         System.out.println("Вектор неизвестных");
-        System.out.println("|     xi     ||   точное   ||  невязка  |");
+        System.out.println("|     yi     ||   точное   ||  невязка  |");
         double nev[] = nevyazka(a,b,c,d,y,n);
         for (int i = 0; i < n + 1; i++) {
             System.out.printf("|%12.9f||%12.9f||%19.18f|\n",y[i],resh.apply(x0+i*h),nev[i]);
@@ -250,16 +250,16 @@ public class Task1 {
         }
     }
 
-    public static double[] nevyazka(double[] a, double[] b, double[] c, double[] d, double[] x, int n){
+    public static double[] nevyazka(double[] a, double[] b, double[] c, double[] d, double[] y, int n){
         double[] result =  IntStream.range(0, n+1).mapToDouble(i -> i).map(k -> {
                 int i = (int)k;
                 if (i > 0 && i < n)
-                    return (a[i] * x[i - 1] + b[i] * x[i] + c[i] * x[i + 1]) - d[i];
+                    return (a[i] * y[i - 1] + b[i] * y[i] + c[i] * y[i + 1]) - d[i];
                 else
                 if (i == 0)
-                    return b[i] * x[i] + c[i] * x[i + 1] - d[i];
+                    return b[i] * y[i] + c[i] * y[i + 1] - d[i];
                 else
-                    return a[i] * x[i - 1] + b[i] * x[i] - d[i];
+                    return a[i] * y[i - 1] + b[i] * y[i] - d[i];
         }).toArray();
     return result;
     }

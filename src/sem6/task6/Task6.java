@@ -44,14 +44,11 @@ public class Task6 {
 
             for (int i = 0; i < n; i++) {
                 int PolyDegree = i - 2;
+                //Пресчитать из замечания 3 у Пакулиной
                 if (i==0){
                     w[i] = x -> x*x-2*x-3;
                     dw[i] = x -> 2*x-2;
                     ddw[i] = x -> 2.0;
-
-//                    w[i] = x -> 1.0+x;
-//                    dw[i] = x -> 1.0;
-//                    ddw[i] = x -> 0.0;
                 }
                 else if (i==1){
 
@@ -60,11 +57,8 @@ public class Task6 {
                     ddw[i] = x -> 6.0*x;
 
                 }
+                //Это не трогать. Уже продифференцироано
                 else {
-//                    w[i] = x -> (1.0 - x * x) * PolynomialsUtils.createJacobiPolynomial(PolyDegree, 1, 1).value(x);
-//                    dw[i] = x -> -2.0 * (PolyDegree + 1) * PolynomialsUtils.createJacobiPolynomial(PolyDegree + 1, 0, 0).value(x);
-//                    ddw[i] = x -> -2.0 * (PolyDegree + 1)* (PolyDegree + 1 + 0 + 1) / 2.0 * PolynomialsUtils.createJacobiPolynomial(PolyDegree, 1, 1).value(x);
-//
                     w[i] = x -> Math.pow((1.0 - x * x),2) * PolynomialsUtils.createJacobiPolynomial(PolyDegree, 2, 2)
                             .value(x);
                     dw[i] = x -> -2.0 * (PolyDegree + 1)* (1.0 - x * x) * PolynomialsUtils.createJacobiPolynomial(PolyDegree + 1, 1,1)
